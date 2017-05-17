@@ -3,7 +3,11 @@
 
 #include "base.h"
 
-class Shape {};
+class Shape {
+public:
+    virtual bool intersect(const Ray &r) = 0;
+    virtual Vec3 intersect_point(const Ray &r) = 0;
+};
 
 class Sphere : public Shape {
 private:
@@ -11,7 +15,7 @@ private:
     Float radius;
 public:
     Sphere(Vec3 position, Float radius);
-    bool intersect(const Ray &r);
+    virtual bool intersect(const Ray &r);
     Vec3 intersect_point(const Ray &r);
 };
 

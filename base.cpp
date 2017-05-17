@@ -39,6 +39,13 @@ Float Vec3::operator[](int id) const {
     }
 }
 
+Vec3 &Vec3::operator+=(const Vec3 &p) {
+    x += p.x;
+    y += p.y;
+    z += p.z;
+    return *this;
+}
+
 Vec3 operator+(const Vec3 &p, const Vec3 &q) {
     return Vec3(p.x + q.x, p.y + q.y, p.z + q.z);
 }
@@ -67,6 +74,10 @@ Vec3 cross(const Vec3 &p, const Vec3 &q) {
     return Vec3(p.y * q.z - p.z * q.y,
                 p.z * q.x - p.x * q.z,
                 p.x * q.y - p.y * q.x);
+}
+
+Float distance_sqr(const Vec3 &p, const Vec3 &q) {
+    return dot(p - q, p - q);
 }
 
 Ray::Ray() {}

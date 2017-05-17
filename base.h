@@ -5,6 +5,8 @@
 
 typedef float Float;
 
+const Float eps = 1e-5;
+
 class Vec3 {
 private:
     Float x, y, z;
@@ -17,6 +19,7 @@ public:
     Float length() const;
     Vec3 normalize() const;
     Float operator[](int id) const;
+    Vec3& operator+=(const Vec3 &p);
     friend Vec3 operator+(const Vec3 &p, const Vec3 &q);
     friend Vec3 operator-(const Vec3 &p, const Vec3 &q);
     friend Vec3 operator*(const Vec3 &p, Float q);
@@ -24,6 +27,7 @@ public:
     friend Vec3 operator/(const Vec3 &p, Float q);
     friend Float dot(const Vec3 &p, const Vec3 &q);
     friend Vec3 cross(const Vec3 &p, const Vec3 &q);
+    friend Float distance_sqr(const Vec3 &p, const Vec3 &q);
 };
 
 Vec3 operator+(const Vec3 &p, const Vec3 &q);
@@ -33,6 +37,7 @@ Vec3 operator*(Float p, const Vec3 &q);
 Vec3 operator/(const Vec3 &p, Float q);
 Float dot(const Vec3 &p, const Vec3 &q);
 Vec3 cross(const Vec3 &p, const Vec3 &q);
+Float distance_sqr(const Vec3 &p, const Vec3 &q);
 
 class Ray {
 private:

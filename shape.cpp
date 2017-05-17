@@ -20,7 +20,6 @@ bool Sphere::intersect(const Ray &r) {
     Float c = cx * cx + cy * cy + cz * cz + x0 * x0 +
             y0 * y0 + z0 * z0 - 2 * (cx * x0 + cy * y0 + cz * z0) - radius * radius;
     Float discriminant = b * b - 4 * a * c;
-    printf("%f\n", discriminant);
     return discriminant >= 0;
 }
 
