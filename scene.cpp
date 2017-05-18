@@ -52,9 +52,14 @@ Vec3 Scene::li(const Ray &r, int depth) {
             }
         }
         if (ok) {
+            Vec3 normal = ((Sphere *)nearest->get_shape())->get_normal(point);
+            normal = normal.normalize();
+            Vec3 light_direction = ((PointLight *)light)->get_position() - point;
+            light_direction = light_direction.normalize();
+            Float diffuse = std::max(dot(normal, light_direction), (Float)0.0);
             color += nearest->get_material()->get_diffuse() *
                      ((PointLight *)light)->get_intensity() *
-                     nearest->get_material()->get_color();
+                     nearest->get_material()->get_color() * diffuse;
             //TODO: specular and shininess
         }
     }

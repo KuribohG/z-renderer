@@ -15,6 +15,7 @@ private:
     Float radius;
 public:
     Sphere(Vec3 position, Float radius);
+    Vec3 get_normal(const Vec3 &p) const;
     virtual bool intersect(const Ray &r);
     Vec3 intersect_point(const Ray &r);
 };

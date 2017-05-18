@@ -5,6 +5,10 @@
 Sphere::Sphere(Vec3 position, Float radius)
         : position(position), radius(radius) {}
 
+Vec3 Sphere::get_normal(const Vec3 &p) const {
+    return p - position;
+}
+
 bool Sphere::intersect(const Ray &r) {
     Float dx = r.get_direction().get_x();
     Float dy = r.get_direction().get_y();

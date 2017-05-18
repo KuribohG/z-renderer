@@ -31,13 +31,7 @@ int main() {
         for (int j = 0; j < HEIGHT; j++) {
             Ray r = camera.get_ray_through_pixel(i, j, WIDTH, HEIGHT);
             Vec3 color = scene.li(r, 5);
-            if (color[0] > 0.5) {
-                fprintf(f, "7 ");
-            } else if (color[0] > 0.05) {
-                fprintf(f, "2 ");
-            } else {
-                fprintf(f, "0 ");
-            }
+            fprintf(f, "%c ", (char)('a' + (int)(color[0] / 0.1)));
         }
         fprintf(f, "\n");
     }
