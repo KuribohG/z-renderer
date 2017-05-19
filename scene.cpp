@@ -24,7 +24,9 @@ Vec3 Scene::li(const Ray &r, int depth) {
     for (Object *obj : objs) {
         bool has_intersection = obj->get_shape()->intersect(r);
         if (has_intersection) {
-            Vec3 intersection = obj->get_shape()->intersect_point(r);
+            Intersection isect;
+            obj->get_shape()->intersect_point(r, isect);
+            Vec3 intersection = isect.get_point();
             Float d = distance_sqr(r.get_origin(), intersection);
             if (d < dis) {
                 dis = d;
@@ -41,11 +43,13 @@ Vec3 Scene::li(const Ray &r, int depth) {
         Vec3 origin = ((PointLight *)light)->get_position();
         Ray l(origin, point - origin);
         Float dis_light = distance_sqr(l.get_origin(), point);
+        Intersection isect;
         bool ok = true;
         for (Object *obj : objs) {
             bool has_intersection = obj->get_shape()->intersect(l);
             if (has_intersection) {
-                Vec3 intersection = obj->get_shape()->intersect_point(l);
+                obj->get_shape()->intersect_point(l, isect);
+                Vec3 intersection = isect.get_point();
                 Float d = distance_sqr(l.get_origin(), intersection);
                 if (d < dis_light - eps) {
                     ok = false;
@@ -55,8 +59,7 @@ Vec3 Scene::li(const Ray &r, int depth) {
         }
         if (ok) {
             Float intensity = ((PointLight *)light)->get_intensity();
-            Vec3 normal = ((Sphere *)nearest->get_shape())->get_normal(point);
-            normal = normal.normalize();
+            Vec3 normal = isect.get_normal();
             Vec3 light_direction = origin - point;
             light_direction = light_direction.normalize();
             Float diffuse = std::max(dot(normal, light_direction), (Float)0.0);
