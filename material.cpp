@@ -22,6 +22,10 @@ void Material::set_shininess(Float source) {
     shininess = source;
 }
 
+void Material::set_reflectivity(Float source) {
+    reflectivity = source;
+}
+
 Vec3 Material::get_color() const {
     return color;
 }
@@ -40,4 +44,8 @@ Float Material::get_specular() const {
 
 Float Material::get_shininess() const {
     return shininess;
+}
+
+Float Material::get_reflectivity() const {
+    return reflectivity;
 }

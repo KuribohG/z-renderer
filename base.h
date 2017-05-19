@@ -19,6 +19,7 @@ public:
     Float length() const;
     Vec3 normalize() const;
     Float operator[](int id) const;
+    Vec3 operator-() const;
     Vec3& operator+=(const Vec3 &p);
     friend Vec3 operator+(const Vec3 &p, const Vec3 &q);
     friend Vec3 operator-(const Vec3 &p, const Vec3 &q);

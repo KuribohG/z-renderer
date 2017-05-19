@@ -10,6 +10,7 @@ private:
     Float diffuse;
     Float specular;
     Float shininess;
+    Float reflectivity;
 public:
     Material();
     void set_color(const Vec3 &source);
@@ -17,11 +18,13 @@ public:
     void set_diffuse(Float source);
     void set_specular(Float source);
     void set_shininess(Float source);
+    void set_reflectivity(Float source);
     Vec3 get_color() const;
     Float get_ambient() const;
     Float get_diffuse() const;
     Float get_specular() const;
     Float get_shininess() const;
+    Float get_reflectivity() const;
 };
 
 #endif //RENDER_MATERIAL_H

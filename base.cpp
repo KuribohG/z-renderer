@@ -39,6 +39,10 @@ Float Vec3::operator[](int id) const {
     }
 }
 
+Vec3 Vec3::operator-() const {
+    return Vec3(-x, -y, -z);
+}
+
 Vec3 &Vec3::operator+=(const Vec3 &p) {
     x += p.x;
     y += p.y;

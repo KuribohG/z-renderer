@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "scene.h"
 
 Scene::Scene() {}
@@ -13,7 +15,7 @@ void Scene::add_light(Light *light) {
 Vec3 Scene::li(const Ray &r, int depth) {
     Vec3 color(0.0, 0.0, 0.0);
     if (depth == 0) {
-        return Vec3(0.0, 0.0, 0.0);
+        return color;
     }
     const Float INF = 1e20;
     Float dis = INF;
@@ -52,15 +54,26 @@ Vec3 Scene::li(const Ray &r, int depth) {
             }
         }
         if (ok) {
+            Float intensity = ((PointLight *)light)->get_intensity();
             Vec3 normal = ((Sphere *)nearest->get_shape())->get_normal(point);
             normal = normal.normalize();
-            Vec3 light_direction = ((PointLight *)light)->get_position() - point;
+            Vec3 light_direction = origin - point;
             light_direction = light_direction.normalize();
             Float diffuse = std::max(dot(normal, light_direction), (Float)0.0);
-            color += nearest->get_material()->get_diffuse() *
-                     ((PointLight *)light)->get_intensity() *
+            color += nearest->get_material()->get_diffuse() * intensity *
                      nearest->get_material()->get_color() * diffuse;
-            //TODO: specular and shininess
+            Float shininess = nearest->get_material()->get_shininess();
+            Float specular = nearest->get_material()->get_specular();
+            Vec3 view_direction = r.get_origin() - point;
+            view_direction = view_direction.normalize();
+            Vec3 halfway_direction = (view_direction + light_direction).normalize();
+            Float spec = std::pow(std::max(dot(normal, halfway_direction), (Float)0.0), shininess);
+            Vec3 col_specular = spec * intensity * Vec3(1.0, 1.0, 1.0) * specular;
+            color += col_specular;
+            Float reflectivity = nearest->get_material()->get_reflectivity();
+            Vec3 reflect_direction = -light_direction - 2.0 * dot(-light_direction, normal) * normal;
+            reflect_direction = reflect_direction.normalize();
+            color += reflectivity * li(Ray(point + 0.01 * reflect_direction, reflect_direction), depth - 1);
         }
     }
     return color;

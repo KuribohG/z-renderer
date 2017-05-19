@@ -24,7 +24,11 @@ bool Sphere::intersect(const Ray &r) {
     Float c = cx * cx + cy * cy + cz * cz + x0 * x0 +
             y0 * y0 + z0 * z0 - 2 * (cx * x0 + cy * y0 + cz * z0) - radius * radius;
     Float discriminant = b * b - 4 * a * c;
-    return discriminant >= 0;
+    if (discriminant < 0) {
+        return false;
+    }
+    Float t = (-b - std::sqrt(discriminant)) / (2 * a);
+    return t > 0;
 }
 
 Vec3 Sphere::intersect_point(const Ray &r) {
