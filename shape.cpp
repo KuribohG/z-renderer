@@ -2,7 +2,7 @@
 
 #include "shape.h"
 
-Sphere::Sphere(Vec3 position, Float radius)
+Sphere::Sphere(const Vec3 &position, Float radius)
         : position(position), radius(radius) {}
 
 bool Sphere::intersect(const Ray &r) const {
@@ -61,4 +61,46 @@ void Sphere::intersect_point(const Ray &r, Intersection &isect) const {
         }
         isect.set_point(point);
     }
+}
+
+Triangle::Triangle(const Vec3 &p0, const Vec3 &p1, const Vec3 &p2) {
+    p[0] = p0;
+    p[1] = p1;
+    p[2] = p2;
+}
+
+bool Triangle::intersect(const Ray &r) const {
+    Vec3 p = r.get_origin(), d = r.get_direction();
+    Vec3 v0 = this->p[0], v1 = this->p[1], v2 = this->p[2];
+    Vec3 e1 = v1 - v0, e2 = v2 - v0;
+    Vec3 h = cross(d, e2);
+    Float a = dot(e1, h);
+    if (fabs(a) < eps) return false;
+    Float f = 1 / a;
+    Vec3 s = p - v0;
+    Float u = f * dot(s, h);
+    if (u < 0.0 || u > 1.0) return false;
+    Vec3 q = cross(s, e1);
+    Float v = f * dot(d, q);
+    if (v < 0.0 || u + v > 1.0) return false;
+    Float t = f * dot(e2, q);
+    if (t > eps) return true;
+    return false;
+}
+
+void Triangle::intersect_point(const Ray &r, Intersection &isect) const {
+    Vec3 p = r.get_origin(), d = r.get_direction();
+    Vec3 v0 = this->p[0], v1 = this->p[1], v2 = this->p[2];
+    Vec3 e1 = v1 - v0, e2 = v2 - v0;
+    Vec3 h = cross(d, e2);
+    Float a = dot(e1, h);
+    Float f = 1 / a;
+    Vec3 s = p - v0;
+    Vec3 q = cross(s, e1);
+    Float t = f * dot(e2, q);
+    isect.set_point(p + t * d);
+    Vec3 normal = cross(e1, e2);
+    Float volume = dot(normal, p - v0);
+    if (volume > 0) isect.set_normal(normal);
+    else isect.set_normal(-normal);
 }

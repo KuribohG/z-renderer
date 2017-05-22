@@ -27,6 +27,8 @@ void write_image_in_ppm(const char *filename, int width, int height, const unsig
 int main() {
     Camera camera(Vec3(0.0, 0.0, 2.0), Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0), 1.5, 1.5);
     camera.initialize();
+    Triangle triangle(Vec3(-1.0, -1.0, -1.0), Vec3(1.0, -1.0, -1.0), Vec3(-1.0, 1.0, -1.0));
+    Triangle another_triangle(Vec3(-1.0, -1.0, -1.0), Vec3(-1.0, -2.0, -1.0), Vec3(0.0, -1.0, -1.0));
     Sphere sphere(Vec3(0.0, 0.0, -1.0), 1.0);
     Sphere another_sphere(Vec3(0.0, 0.0, 5.0), 10.0);
     Material material;
@@ -45,11 +47,11 @@ int main() {
     another_material.set_color(Vec3(0.0, 1.0, 0.0));
     Scene scene;
     Object object;
-    object.bind_shape(&sphere);
-    object.bind_material(&material);
+    object.bind_shape(&triangle);
+    object.bind_material(&another_material);
     scene.add_obj(&object);
     Object another_object;
-    another_object.bind_shape(&another_sphere);
+    another_object.bind_shape(&another_triangle);
     another_object.bind_material(&another_material);
     scene.add_obj(&another_object);
     PointLight light(Vec3(-1.0, -1.0, 1.0), 1.0);
