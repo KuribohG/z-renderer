@@ -20,9 +20,9 @@ void Camera::initialize() {
 }
 
 Ray Camera::get_ray_through_pixel(int x, int y, int width, int height) const {
-    Vec3 direction = (center - position).normalize();
-    Vec3 left = cross(up, direction);
+    Vec3 direction = center - position;
+    Vec3 left = cross(up, direction.normalize());
     Float dx = x_len / width, dy = y_len / height;
-    Vec3 ray_direction = (dx * (x + 0.5 - width / 2)) * left + (dy * (y + 0.5 - height / 2)) * up + direction;
+    Vec3 ray_direction = (dx * (x + 0.5 - width / 2)) * -left + (dy * (y + 0.5 - height / 2)) * up + direction;
     return Ray(position, ray_direction.normalize());
 }

@@ -24,43 +24,55 @@ void write_image_in_ppm(const char *filename, int width, int height, const unsig
     fclose(fp);
 }
 
+void load_obj(const char *filename, std::vector<Triangle> &mesh) {
+    FILE *fp = fopen(filename, "r");
+    char type[10];
+    std::vector<Vec3> vertices;
+    while(true) {
+        int res = fscanf(fp, "%s", type);
+        if (res == EOF) {
+            break;
+        }
+        if (strcmp(type, "v") == 0) {
+            Float x, y, z;
+            fscanf(fp, "%f%f%f", &x, &y, &z);
+            vertices.emplace_back(x, y, z);
+        } else if(strcmp(type, "f") == 0) {
+            int x, y, z;
+            fscanf(fp, "%d%d%d", &x, &y, &z);
+            x--, y--, z--;
+            mesh.emplace_back(vertices[x], vertices[y], vertices[z]);
+        }
+    }
+    fclose(fp);
+}
+
 int main() {
     Camera camera(Vec3(0.0, 0.0, 2.0), Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0), 1.5, 1.5);
     camera.initialize();
-    Triangle triangle(Vec3(-1.0, -1.0, -1.0), Vec3(1.0, -1.0, -1.0), Vec3(-1.0, 1.0, -1.0));
-    Triangle another_triangle(Vec3(-1.0, -1.0, -1.0), Vec3(-1.0, -2.0, -1.0), Vec3(0.0, -1.0, -1.0));
-    Sphere sphere(Vec3(0.0, 0.0, -1.0), 1.0);
-    Sphere another_sphere(Vec3(0.0, 0.0, 5.0), 10.0);
     Material material;
-    material.set_ambient(0.0);
-    material.set_specular(0.0);
-    material.set_diffuse(0.0);
+    material.set_ambient(0.1);
+    material.set_specular(0.5);
+    material.set_diffuse(0.2);
     material.set_shininess(32.0);
-    material.set_reflectivity(1.0);
-    material.set_color(Vec3(1.0, 0.0, 0.0));
-    Material another_material;
-    another_material.set_ambient(0.1);
-    another_material.set_specular(0.5);
-    another_material.set_diffuse(0.2);
-    another_material.set_shininess(32.0);
-    another_material.set_reflectivity(0.0);
-    another_material.set_color(Vec3(0.0, 1.0, 0.0));
+    material.set_reflectivity(0.0);
+    material.set_color(Vec3(0.0, 1.0, 0.0));
     Scene scene;
-    Object object;
-    object.bind_shape(&triangle);
-    object.bind_material(&another_material);
-    scene.add_obj(&object);
-    Object another_object;
-    another_object.bind_shape(&another_triangle);
-    another_object.bind_material(&another_material);
-    scene.add_obj(&another_object);
+    std::vector<Triangle> mesh;
+    load_obj("example.obj", mesh);
+    Object *objs = new Object[(int)mesh.size()];
+    for (int i = 0; i < mesh.size(); i++) {
+        objs[i].bind_shape(&mesh[i]);
+        objs[i].bind_material(&material);
+        scene.add_obj(&objs[i]);
+    }
     PointLight light(Vec3(-1.0, -1.0, 1.0), 1.0);
     scene.add_light(&light);
 
     unsigned char *data = new unsigned char[WIDTH * HEIGHT * 3];
     int id = 0;
-    for (int i = 0; i < WIDTH; i++) {
-        for (int j = 0; j < HEIGHT; j++) {
+    for (int j = HEIGHT - 1; j >= 0; j--) {
+        for (int i = 0; i < WIDTH; i++) {
             Ray r = camera.get_ray_through_pixel(i, j, WIDTH, HEIGHT);
             Vec3 color = scene.li(r, 5);
             data[id++] = (unsigned char)(std::min(color[0], (Float)1.0) * 256);
@@ -69,6 +81,8 @@ int main() {
         }
     }
     write_image_in_ppm("image.ppm", WIDTH, HEIGHT, data);
+
+    delete [] objs;
 
     return 0;
 }

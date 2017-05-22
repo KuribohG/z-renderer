@@ -22,8 +22,9 @@ public:
 
 class Triangle : public Shape {
 private:
-    Vec3 p[3];
+    //Vec3 p[3];
 public:
+    Vec3 p[3];
     Triangle(const Vec3 &p0, const Vec3 &p1, const Vec3 &p2);
     virtual bool intersect(const Ray &r) const;
     virtual void intersect_point(const Ray &r, Intersection &isect) const;
