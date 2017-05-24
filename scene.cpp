@@ -74,9 +74,11 @@ Vec3 Scene::li(const Ray &r, int depth) {
             Vec3 col_specular = spec * intensity * Vec3(1.0, 1.0, 1.0) * specular;
             color += col_specular;
             Float reflectivity = nearest->get_material()->get_reflectivity();
-            Vec3 reflect_direction = -light_direction - 2.0 * dot(-light_direction, normal) * normal;
-            reflect_direction = reflect_direction.normalize();
-            color += reflectivity * li(Ray(point + 0.01 * reflect_direction, reflect_direction), depth - 1);
+            if (reflectivity > 0.0) {
+                Vec3 reflect_direction = -light_direction - 2.0 * dot(-light_direction, normal) * normal;
+                reflect_direction = reflect_direction.normalize();
+                color += reflectivity * li(Ray(point + 0.01 * reflect_direction, reflect_direction), depth - 1);
+            }
         }
     }
     return color;

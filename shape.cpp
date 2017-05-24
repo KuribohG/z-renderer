@@ -1,4 +1,6 @@
 #include <cmath>
+#include <limits>
+#include <algorithm>
 
 #include "shape.h"
 
@@ -63,6 +65,12 @@ void Sphere::intersect_point(const Ray &r, Intersection &isect) const {
     }
 }
 
+BBox Sphere::get_bbox() const {
+    Vec3 min_v(position[0] - radius, position[1] - radius, position[2] - radius);
+    Vec3 max_v(position[0] + radius, position[1] + radius, position[2] + radius);
+    return BBox(min_v, max_v);
+}
+
 Triangle::Triangle(const Vec3 &p0, const Vec3 &p1, const Vec3 &p2) {
     p[0] = p0;
     p[1] = p1;
@@ -79,12 +87,12 @@ bool Triangle::intersect(const Ray &r) const {
     Float f = 1 / a;
     Vec3 s = p - v0;
     Float u = f * dot(s, h);
-    if (u < 0.0 || u > 1.0) return false;
+    if (u < -eps || u > 1.0 + eps) return false;
     Vec3 q = cross(s, e1);
     Float v = f * dot(d, q);
-    if (v < 0.0 || u + v > 1.0) return false;
+    if (v < -eps || u + v > 1.0 + eps) return false;
     Float t = f * dot(e2, q);
-    if (t > eps) return true;
+    if (t > -eps) return true;
     return false;
 }
 
@@ -103,4 +111,18 @@ void Triangle::intersect_point(const Ray &r, Intersection &isect) const {
     Float volume = dot(normal, p - v0);
     if (volume > 0) isect.set_normal(normal);
     else isect.set_normal(-normal);
+}
+
+BBox Triangle::get_bbox() const {
+    Vec3 min_v, max_v;
+    for (int i = 0; i < 3; i++) {
+        Float min_x = std::numeric_limits<Float>::max();
+        Float max_x = std::numeric_limits<Float>::lowest();
+        for (int j = 0; j < 3; j++) {
+            max_x = std::max(max_x, p[j][i]);
+            min_x = std::min(min_x, p[j][i]);
+        }
+        min_v.set(i, min_x), max_v.set(i, max_x);
+    }
+    return BBox(min_v, max_v);
 }

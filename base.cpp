@@ -28,6 +28,12 @@ Vec3 Vec3::normalize() const {
     return (*this) / length();
 }
 
+void Vec3::set(int pos, Float t) {
+    if (pos == 0) x = t;
+    else if (pos == 1) y = t;
+    else z = t;
+}
+
 Float Vec3::operator[](int id) const {
     assert(id >= 0 && id < 3);
     if (id == 0) {
