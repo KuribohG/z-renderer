@@ -4,6 +4,7 @@
 #include "camera.h"
 #include "material.h"
 #include "scene.h"
+#include "kdtree.h"
 
 #include "omp.h"
 
@@ -61,7 +62,7 @@ int main() {
     material.set_color(Vec3(1.0, 1.0, 1.0));
     Scene scene;
     std::vector<Triangle> mesh;
-    load_obj("example.obj", mesh);
+    load_obj("example1.obj", mesh);
     Object *objs = new Object[(int)mesh.size()];
     for (int i = 0; i < mesh.size(); i++) {
         objs[i].bind_shape(&mesh[i]);
@@ -70,6 +71,9 @@ int main() {
     }
     PointLight light(Vec3(31.0, 32.0, 32.0), 1.0);
     scene.add_light(&light);
+
+    KdTree *tree = new KdTree();
+    tree->build(scene.objs);
 
     unsigned char *data = new unsigned char[WIDTH * HEIGHT * 3];
 

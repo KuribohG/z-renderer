@@ -7,10 +7,9 @@
 #include "light.h"
 
 class Scene {
-private:
+public:
     std::vector<Object *> objs;
     std::vector<Light *> lights;
-public:
     Scene();
     void add_obj(Object *obj);
     void add_light(Light *light);

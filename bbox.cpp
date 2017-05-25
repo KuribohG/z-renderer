@@ -19,3 +19,7 @@ void BBox::expand(const BBox &p) {
         max_v.set(i, std::max(max_v[i], p.max_v[i]));
     }
 }
+
+Vec3 BBox::midpoint() const {
+    return (min_v + max_v) / 2.0;
+}
