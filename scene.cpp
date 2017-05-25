@@ -1,4 +1,5 @@
 #include <cmath>
+#include <limits>
 
 #include "scene.h"
 
@@ -12,28 +13,33 @@ void Scene::add_light(Light *light) {
     lights.push_back(light);
 }
 
-Vec3 Scene::li(const Ray &r, int depth) {
+Vec3 Scene::li(const Ray &r, int depth, KdTree *tree) {
     Vec3 color(0.0, 0.0, 0.0);
     if (depth == 0) {
         return color;
     }
-    const Float INF = 1e20;
-    Float dis = INF;
     Object *nearest = nullptr;
     Vec3 point;
-    for (Object *obj : objs) {
-        bool has_intersection = obj->get_shape()->intersect(r);
-        if (has_intersection) {
-            Intersection isect;
-            obj->get_shape()->intersect_point(r, isect);
-            Vec3 intersection = isect.get_point();
-            Float d = distance_sqr(r.get_origin(), intersection);
-            if (d < dis) {
-                dis = d;
-                nearest = obj;
-                point = intersection;
+    if (!tree) {
+        Float dis = std::numeric_limits<Float>::max();
+        for (Object *obj : objs) {
+            bool has_intersection = obj->get_shape()->intersect(r);
+            if (has_intersection) {
+                Intersection isect;
+                obj->get_shape()->intersect_point(r, isect);
+                Vec3 intersection = isect.point;
+                Float d = distance_sqr(r.get_origin(), intersection);
+                if (d < dis) {
+                    dis = d;
+                    nearest = obj;
+                    point = intersection;
+                }
             }
         }
+    } else {
+        Intersection isect;
+        nearest = tree->hit(r, isect);
+        point = isect.point;
     }
     if (!nearest) {
         return color;
@@ -42,24 +48,32 @@ Vec3 Scene::li(const Ray &r, int depth) {
     for (Light *light : lights) {
         Vec3 origin = ((PointLight *)light)->get_position();
         Ray l(origin, point - origin);
-        Float dis_light = distance_sqr(l.get_origin(), point);
         Intersection isect;
         bool ok = true;
-        for (Object *obj : objs) {
-            bool has_intersection = obj->get_shape()->intersect(l);
-            if (has_intersection) {
-                obj->get_shape()->intersect_point(l, isect);
-                Vec3 intersection = isect.get_point();
-                Float d = distance_sqr(l.get_origin(), intersection);
-                if (d < dis_light - eps) {
-                    ok = false;
-                    break;
+        Float dis_light = distance_sqr(origin, point);
+        if (!tree) {
+            for (Object *obj : objs) {
+                bool has_intersection = obj->get_shape()->intersect(l);
+                if (has_intersection) {
+                    obj->get_shape()->intersect_point(l, isect);
+                    Vec3 intersection = isect.point;
+                    Float d = distance_sqr(origin, intersection);
+                    if (d < dis_light - eps) {
+                        ok = false;
+                        break;
+                    }
                 }
+            }
+        } else {
+            Object *obj = tree->hit(l, isect);
+            if (obj) {
+                Float d = distance_sqr(origin, isect.point);
+                if (d < dis_light - eps) ok = false;
             }
         }
         if (ok) {
             Float intensity = ((PointLight *)light)->get_intensity();
-            Vec3 normal = isect.get_normal();
+            Vec3 normal = isect.normal;
             Vec3 light_direction = origin - point;
             light_direction = light_direction.normalize();
             Float diffuse = std::max(dot(normal, light_direction), (Float)0.0);

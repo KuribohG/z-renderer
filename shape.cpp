@@ -52,7 +52,7 @@ void Sphere::intersect_point(const Ray &r, Intersection &isect) const {
         } else {
             isect.set_normal(point - position);
         }
-        isect.set_point(point);
+        isect.point = point;
     } else {
         Float t2 = (-b + std::sqrt(discriminant)) / (2 * a);
         Vec3 point = r.get_origin() + t2 * r.get_direction();
@@ -61,7 +61,7 @@ void Sphere::intersect_point(const Ray &r, Intersection &isect) const {
         } else {
             isect.set_normal(point - position);
         }
-        isect.set_point(point);
+        isect.point = point;
     }
 }
 
@@ -106,7 +106,7 @@ void Triangle::intersect_point(const Ray &r, Intersection &isect) const {
     Vec3 s = p - v0;
     Vec3 q = cross(s, e1);
     Float t = f * dot(e2, q);
-    isect.set_point(p + t * d);
+    isect.point = p + t * d;
     Vec3 normal = cross(e1, e2);
     Float volume = dot(normal, p - v0);
     if (volume > 0) isect.set_normal(normal);

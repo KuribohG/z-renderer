@@ -5,6 +5,7 @@
 
 #include "object.h"
 #include "light.h"
+#include "kdtree.h"
 
 class Scene {
 public:
@@ -13,7 +14,7 @@ public:
     Scene();
     void add_obj(Object *obj);
     void add_light(Light *light);
-    Vec3 li(const Ray &r, int depth);
+    Vec3 li(const Ray &r, int depth, KdTree *tree = nullptr);
 };
 
 #endif //RENDER_SCENE_H

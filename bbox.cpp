@@ -23,3 +23,37 @@ void BBox::expand(const BBox &p) {
 Vec3 BBox::midpoint() const {
     return (min_v + max_v) / 2.0;
 }
+
+// http://www.cs.utah.edu/~awilliam/box/box.pdf
+bool BBox::hit(const Ray &r) const {
+    Float tmin, tmax, tymin, tymax, tzmin, tzmax;
+    Vec3 origin = r.get_origin(), direction = r.get_direction();
+    if (direction[0] >= 0) {
+        tmin = (min_v[0] - origin[0]) / direction[0];
+        tmax = (max_v[0] - origin[0]) / direction[0];
+    } else {
+        tmin = (max_v[0] - origin[0]) / direction[0];
+        tmax = (min_v[0] - origin[0]) / direction[0];
+    }
+    if (direction[1] >= 0) {
+        tymin = (min_v[1] - origin[1]) / direction[1];
+        tymax = (max_v[1] - origin[1]) / direction[1];
+    } else {
+        tymin = (max_v[1] - origin[1]) / direction[1];
+        tymax = (min_v[1] - origin[1]) / direction[1];
+    }
+    if ((tmin > tymax) || (tymin > tmax)) return false;
+    if (tymin > tmin) tmin = tymin;
+    if (tymax < tmax) tmax = tymax;
+    if (direction[2] >= 0) {
+        tzmin = (min_v[2] - origin[2]) / direction[2];
+        tzmax = (max_v[2] - origin[2]) / direction[2];
+    } else {
+        tzmin = (max_v[2] - origin[2]) / direction[2];
+        tzmax = (min_v[2] - origin[2]) / direction[2];
+    }
+    if ((tmin > tzmax) || (tzmin > tmax)) return false;
+    if (tzmin > tmin) tmin = tzmin;
+    if (tzmax < tmax) tmax = tzmax;
+    return tmax > -eps;
+}

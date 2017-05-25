@@ -1,3 +1,5 @@
+#include <limits>
+
 #include "kdtree.h"
 
 KdTreeNode::KdTreeNode() {
@@ -45,6 +47,49 @@ KdTreeNode *KdTreeNode::build(const std::vector<Object *> &objs, int depth) {
     return this;
 }
 
+Object *KdTreeNode::hit(const Ray &r, Intersection &isect) const {
+    Vec3 origin = r.get_origin();
+    if (bbox.hit(r)) {
+        if (left || right) {
+            Object *hitleft = nullptr, *hitright = nullptr;
+            Intersection isect1, isect2;
+            if (left) hitleft = left->hit(r, isect1);
+            if (right) hitright = right->hit(r, isect2);
+            if (!hitleft && !hitright) return nullptr;
+            Float d1 = std::numeric_limits<Float>::max(), d2 = std::numeric_limits<Float>::max();
+            if (hitleft) d1 = distance_sqr(origin, isect1.point);
+            if (hitright) d2 = distance_sqr(origin, isect2.point);
+            if (d1 < d2) {
+                isect = isect1;
+                return hitleft;
+            } else {
+                isect = isect2;
+                return hitright;
+            }
+        } else {
+            Intersection isect_res;
+            Object *intersect = nullptr;
+            Float dis = std::numeric_limits<Float>::max();
+            for (int i = 0; i < objs.size(); i++) {
+                Shape *shape = objs[i]->get_shape();
+                if (shape->intersect(r)) {
+                    Intersection isect0;
+                    shape->intersect_point(r, isect0);
+                    Float d = distance_sqr(origin, isect0.point);
+                    if (d < dis) {
+                        dis = d;
+                        isect_res = isect0;
+                        intersect = objs[i];
+                    }
+                }
+            }
+            isect = isect_res;
+            return intersect;
+        }
+    }
+    return nullptr;
+}
+
 KdTree::KdTree()
         : root(nullptr) {}
 
@@ -54,4 +99,8 @@ KdTree::KdTree(KdTreeNode *root)
 void KdTree::build(const std::vector<Object *> &objs) {
     root = new KdTreeNode();
     root->build(objs, 0);
+}
+
+Object *KdTree::hit(const Ray &r, Intersection &isect) const {
+    return root->hit(r, isect);
 }

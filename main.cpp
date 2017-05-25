@@ -52,17 +52,18 @@ void load_obj(const char *filename, std::vector<Triangle> &mesh) {
 
 int main() {
     Camera camera(Vec3(30.0, 32.0, 32.0), Vec3(0.0, 32.0, 32.0), Vec3(0.0, 0.0, 1.0), 100.0, 100.0);
+    //Camera camera(Vec3(10.0, 0.0, 3.0), Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0), 5.0, 5.0);
     camera.initialize();
     Material material;
     material.set_ambient(0.1);
-    material.set_specular(0.3);
-    material.set_diffuse(0.5);
+    material.set_specular(0.0);
+    material.set_diffuse(0.7);
     material.set_shininess(16.0);
     material.set_reflectivity(-1.0);
     material.set_color(Vec3(1.0, 1.0, 1.0));
     Scene scene;
     std::vector<Triangle> mesh;
-    load_obj("example1.obj", mesh);
+    load_obj("example.obj", mesh);
     Object *objs = new Object[(int)mesh.size()];
     for (int i = 0; i < mesh.size(); i++) {
         objs[i].bind_shape(&mesh[i]);
@@ -77,11 +78,11 @@ int main() {
 
     unsigned char *data = new unsigned char[WIDTH * HEIGHT * 3];
 
-    #pragma omp parallel for schedule(dynamic, 1) collapse(2)
+    //#pragma omp parallel for schedule(dynamic, 1) collapse(2)
     for (int j = HEIGHT - 1; j >= 0; j--) {
         for (int i = 0; i < WIDTH; i++) {
             Ray r = camera.get_ray_through_pixel(i, j, WIDTH, HEIGHT);
-            Vec3 color = scene.li(r, 5);
+            Vec3 color = scene.li(r, 5, tree);
             int id = (HEIGHT - 1 - j) * WIDTH * 3 + i * 3;
             data[id++] = (unsigned char)(std::min(color[0], (Float)1.0) * 256);
             data[id++] = (unsigned char)(std::min(color[1], (Float)1.0) * 256);

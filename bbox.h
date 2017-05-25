@@ -10,6 +10,7 @@ public:
     BBox(const Vec3 &min_v, const Vec3 &max_v);
     void expand(const BBox &p);
     Vec3 midpoint() const;
+    bool hit(const Ray &r) const;
 };
 
 #endif //RENDER_BBOX_H
