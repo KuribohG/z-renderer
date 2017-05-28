@@ -8,8 +8,8 @@
 
 #include "omp.h"
 
-const int WIDTH = 500;
-const int HEIGHT = 500;
+const int WIDTH = 2000;
+const int HEIGHT = 2000;
 
 void write_image_in_ppm(const char *filename, int width, int height, const unsigned char *data) {
     static unsigned char color[3];
@@ -51,26 +51,100 @@ void load_obj(const char *filename, std::vector<Triangle> &mesh) {
 }
 
 int main() {
-    Camera camera(Vec3(30.0, 32.0, 32.0), Vec3(0.0, 32.0, 32.0), Vec3(0.0, 0.0, 1.0), 100.0, 100.0);
+    Camera camera(Vec3(50.0, 30.0, -50.0), Vec3(50.0, 30.0, 50.0), Vec3(0.0, 1.0, 0.0), 100.0, 100.0);
     //Camera camera(Vec3(10.0, 0.0, 3.0), Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0), 5.0, 5.0);
     camera.initialize();
-    Material material;
-    material.set_ambient(0.1);
-    material.set_specular(0.0);
-    material.set_diffuse(0.7);
-    material.set_shininess(16.0);
-    material.set_reflectivity(-1.0);
-    material.set_color(Vec3(1.0, 1.0, 1.0));
+    Material mat1, mat2;
+    mat1.set_ambient(0.3);
+    mat1.set_specular(0.5);
+    mat1.set_diffuse(0.6);
+    mat1.set_shininess(32.0);
+    mat1.set_reflectivity(-1.0);
+    mat1.set_color(Vec3(1.0, 1.0, 1.0));
+    mat2.set_ambient(0.3);
+    mat2.set_specular(0.5);
+    mat2.set_diffuse(0.6);
+    mat2.set_shininess(32.0);
+    mat2.set_reflectivity(-1.0);
+    mat2.set_color(Vec3(135.0 / 255, 206.0 / 255, 250.0 / 255));
     Scene scene;
-    std::vector<Triangle> mesh;
-    load_obj("example.obj", mesh);
-    Object *objs = new Object[(int)mesh.size()];
-    for (int i = 0; i < mesh.size(); i++) {
-        objs[i].bind_shape(&mesh[i]);
-        objs[i].bind_material(&material);
-        scene.add_obj(&objs[i]);
+    /*
+    Triangle *x = new Triangle(Vec3(0, 0, 100), Vec3(100, 0, 0), Vec3(0, 0, 0));
+    Object *obj = new Object();
+    obj->bind_shape(x);
+    obj->bind_material(&mat1);
+    scene.add_obj(obj);
+    Triangle *y = new Triangle(Vec3(0, 0, 100), Vec3(100, 0, 100), Vec3(100, 0, 0));
+    Object *obj2 = new Object();
+    obj2->bind_shape(y);
+    obj2->bind_material(&mat2);
+    scene.add_obj(obj2);
+    */
+
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < 10; j++) {
+            int p = i * 10, q = j * 10;
+            Triangle *x = new Triangle(Vec3(p, 0, q), Vec3(p, 0, q+10), Vec3(p+10, 0, q));
+            Object *obj = new Object();
+            obj->bind_shape(x);
+            obj->bind_material(&mat1);
+            scene.add_obj(obj);
+        }
     }
-    PointLight light(Vec3(31.0, 32.0, 32.0), 1.0);
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < 10; j++) {
+            int p = i * 10, q = j * 10;
+            Triangle *x = new Triangle(Vec3(p+10, 0, q+10), Vec3(p+10, 0, q), Vec3(p, 0, q+10));
+            Object *obj = new Object();
+            obj->bind_shape(x);
+            obj->bind_material(&mat2);
+            scene.add_obj(obj);
+        }
+    }
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < 10; j++) {
+            int p = i * 10, q = j * 10;
+            Triangle *x = new Triangle(Vec3(p, 100, q), Vec3(p, 100, q+10), Vec3(p+10, 100, q));
+            Object *obj = new Object();
+            obj->bind_shape(x);
+            obj->bind_material(&mat1);
+            scene.add_obj(obj);
+        }
+    }
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < 10; j++) {
+            int p = i * 10, q = j * 10;
+            Triangle *x = new Triangle(Vec3(p+10, 100, q+10), Vec3(p+10, 100, q), Vec3(p, 100, q+10));
+            Object *obj = new Object();
+            obj->bind_shape(x);
+            obj->bind_material(&mat2);
+            scene.add_obj(obj);
+        }
+    }
+    //Sphere *x = new Sphere(Vec3(50.0, 30.0, 50.0), 20.0);
+    Material mirror;
+    mirror.set_ambient(0.0);
+    mirror.set_specular(0.0);
+    mirror.set_diffuse(0.0);
+    mirror.set_shininess(32.0);
+    mirror.set_reflectivity(0.5);
+    mirror.set_color(Vec3(0.0, 0.0, 0.0));
+    Triangle *x = new Triangle(Vec3(0, 0, 100), Vec3(100, 100, 100), Vec3(0, 100, 100));
+    Triangle *y = new Triangle(Vec3(0, 0, 100), Vec3(100, 100, 100), Vec3(100, 0, 100));
+    Sphere *z = new Sphere(Vec3(30.0, 30.0, 50.0), 10.0);
+    Object *obj = new Object();
+    obj->bind_shape(x);
+    obj->bind_material(&mirror);
+    scene.add_obj(obj);
+    Object *obj2 = new Object();
+    obj2->bind_shape(y);
+    obj2->bind_material(&mirror);
+    scene.add_obj(obj2);
+    Object *obj3 = new Object();
+    obj3->bind_shape(z);
+    obj3->bind_material(&mirror);
+    scene.add_obj(obj3);
+    PointLight light(Vec3(50.0, 50.0, 50.0), 1.0);
     scene.add_light(&light);
 
     KdTree *tree = new KdTree();
@@ -78,7 +152,7 @@ int main() {
 
     unsigned char *data = new unsigned char[WIDTH * HEIGHT * 3];
 
-    //#pragma omp parallel for schedule(dynamic, 1) collapse(2)
+    #pragma omp parallel for schedule(dynamic, 1) collapse(2)
     for (int j = HEIGHT - 1; j >= 0; j--) {
         for (int i = 0; i < WIDTH; i++) {
             Ray r = camera.get_ray_through_pixel(i, j, WIDTH, HEIGHT);
@@ -90,8 +164,6 @@ int main() {
         }
     }
     write_image_in_ppm("image.ppm", WIDTH, HEIGHT, data);
-
-    delete [] objs;
 
     return 0;
 }

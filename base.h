@@ -5,7 +5,7 @@
 
 typedef float Float;
 
-const Float eps = 1e-3;
+const Float eps = 1e-2;
 
 class Vec3 {
 private:

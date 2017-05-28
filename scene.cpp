@@ -19,7 +19,7 @@ Vec3 Scene::li(const Ray &r, int depth, KdTree *tree) {
         return color;
     }
     Object *nearest = nullptr;
-    Vec3 point;
+    Vec3 point, normal;
     if (!tree) {
         Float dis = std::numeric_limits<Float>::max();
         for (Object *obj : objs) {
@@ -40,6 +40,7 @@ Vec3 Scene::li(const Ray &r, int depth, KdTree *tree) {
         Intersection isect;
         nearest = tree->hit(r, isect);
         point = isect.point;
+        normal = isect.normal;
     }
     if (!nearest) {
         return color;
@@ -71,9 +72,9 @@ Vec3 Scene::li(const Ray &r, int depth, KdTree *tree) {
                 if (d < dis_light - eps) ok = false;
             }
         }
+        Vec3 normal = isect.normal;
         if (ok) {
             Float intensity = ((PointLight *)light)->get_intensity();
-            Vec3 normal = isect.normal;
             Vec3 light_direction = origin - point;
             light_direction = light_direction.normalize();
             Float diffuse = std::max(dot(normal, light_direction), (Float)0.0);
@@ -87,13 +88,14 @@ Vec3 Scene::li(const Ray &r, int depth, KdTree *tree) {
             Float spec = std::pow(std::max(dot(normal, halfway_direction), (Float)0.0), shininess);
             Vec3 col_specular = spec * intensity * Vec3(1.0, 1.0, 1.0) * specular;
             color += col_specular;
-            Float reflectivity = nearest->get_material()->get_reflectivity();
-            if (reflectivity > 0.0) {
-                Vec3 reflect_direction = -light_direction - 2.0 * dot(-light_direction, normal) * normal;
-                reflect_direction = reflect_direction.normalize();
-                color += reflectivity * li(Ray(point + 0.01 * reflect_direction, reflect_direction), depth - 1);
-            }
         }
+    }
+    Float reflectivity = nearest->get_material()->get_reflectivity();
+    if (reflectivity > 0.0) {
+        Vec3 direction = r.get_direction();
+        Vec3 reflect_direction = direction - 2.0 * dot(direction, normal) * normal;
+        reflect_direction = reflect_direction.normalize();
+        color += reflectivity * li(Ray(point + 0.5 * reflect_direction, reflect_direction), depth - 1, tree);
     }
     return color;
 }
