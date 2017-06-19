@@ -10,9 +10,6 @@
 
 #include "omp.h"
 
-const int WIDTH = 2000;
-const int HEIGHT = 2000;
-
 void write_image_in_ppm(const char *filename, int width, int height, const unsigned char *data) {
     static unsigned char color[3];
     FILE *fp = fopen(filename, "wb");
@@ -65,9 +62,10 @@ void load_obj(const char *filename, std::vector<MeshTriangle*> &triangles) {
     }
 }
 
-int main() {
+void test1() {
+    const int WIDTH = 2000;
+    const int HEIGHT = 2000;
     Camera camera(Vec3(50.0, 30.0, -50.0), Vec3(50.0, 30.0, 50.0), Vec3(0.0, 1.0, 0.0), 100.0, 100.0);
-    //Camera camera(Vec3(10.0, 0.0, 3.0), Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0), 5.0, 5.0);
     camera.initialize();
     Material mat1, mat2;
     mat1.set_ambient(0.3);
@@ -171,6 +169,49 @@ int main() {
     integrator.render(data, HEIGHT, WIDTH, &camera, &scene, 5, tree);
 
     write_image_in_ppm("image.ppm", WIDTH, HEIGHT, data);
+}
+
+void test_mesh() {
+    const int HEIGHT = 500;
+    const int WIDTH = 500;
+
+    Scene scene;
+    std::vector<MeshTriangle*> v;
+    load_obj("example.obj", v);
+
+    Material mat;
+    mat.set_ambient(0.1);
+    mat.set_specular(0.0);
+    mat.set_diffuse(0.7);
+    mat.set_shininess(16.0);
+    mat.set_reflectivity(-1.0);
+    mat.set_color(Vec3(1.0, 1.0, 1.0));
+    for (MeshTriangle *tri : v) {
+        Object *obj = new Object();
+        obj->bind_shape(tri);
+        obj->bind_material(&mat);
+        scene.add_obj(obj);
+    }
+
+    Camera camera(Vec3(30.0, 32.0, 32.0), Vec3(0.0, 32.0, 32.0), Vec3(0.0, 0.0, 1.0), 100.0, 100.0);
+    camera.initialize();
+
+    PointLight light(Vec3(31.0, 32.0, 32.0), 1.0);
+    scene.add_light(&light);
+
+    KdTree *tree = new KdTree();
+    tree->build(scene.objs);
+
+    unsigned char *data = new unsigned char[WIDTH * HEIGHT * 3];
+
+    WhittedIntegrator integrator;
+    integrator.render(data, HEIGHT, WIDTH, &camera, &scene, 5, tree);
+
+    write_image_in_ppm("image.ppm", WIDTH, HEIGHT, data);
+}
+
+int main() {
+    test_mesh();
 
     return 0;
 }
