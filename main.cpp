@@ -6,6 +6,7 @@
 #include "material.h"
 #include "scene.h"
 #include "kdtree.h"
+#include "integrator.h"
 
 #include "omp.h"
 
@@ -82,18 +83,6 @@ int main() {
     mat2.set_reflectivity(-1.0);
     mat2.set_color(Vec3(135.0 / 255, 206.0 / 255, 250.0 / 255));
     Scene scene;
-    /*
-    Triangle *x = new Triangle(Vec3(0, 0, 100), Vec3(100, 0, 0), Vec3(0, 0, 0));
-    Object *obj = new Object();
-    obj->bind_shape(x);
-    obj->bind_material(&mat1);
-    scene.add_obj(obj);
-    Triangle *y = new Triangle(Vec3(0, 0, 100), Vec3(100, 0, 100), Vec3(100, 0, 0));
-    Object *obj2 = new Object();
-    obj2->bind_shape(y);
-    obj2->bind_material(&mat2);
-    scene.add_obj(obj2);
-    */
 
     for (int i = 0; i < 10; i++) {
         for (int j = 0; j < 10; j++) {
@@ -135,7 +124,7 @@ int main() {
             scene.add_obj(obj);
         }
     }
-    //Sphere *x = new Sphere(Vec3(50.0, 30.0, 50.0), 20.0);
+
     Material mirror;
     mirror.set_ambient(0.3);
     mirror.set_specular(0.0);
@@ -178,17 +167,9 @@ int main() {
 
     unsigned char *data = new unsigned char[WIDTH * HEIGHT * 3];
 
-    #pragma omp parallel for schedule(dynamic, 1) collapse(2)
-    for (int j = HEIGHT - 1; j >= 0; j--) {
-        for (int i = 0; i < WIDTH; i++) {
-            Ray r = camera.get_ray_through_pixel(i, j, WIDTH, HEIGHT);
-            Vec3 color = scene.li(r, 5, tree, true);
-            int id = (HEIGHT - 1 - j) * WIDTH * 3 + i * 3;
-            data[id++] = (unsigned char)(std::min(color[0], (Float)1.0) * 256);
-            data[id++] = (unsigned char)(std::min(color[1], (Float)1.0) * 256);
-            data[id++] = (unsigned char)(std::min(color[2], (Float)1.0) * 256);
-        }
-    }
+    WhittedIntegrator integrator;
+    integrator.render(data, HEIGHT, WIDTH, &camera, &scene, 5, tree);
+
     write_image_in_ppm("image.ppm", WIDTH, HEIGHT, data);
 
     return 0;
