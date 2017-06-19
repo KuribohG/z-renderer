@@ -32,4 +32,24 @@ public:
     virtual BBox get_bbox() const;
 };
 
+class TriangleMesh {
+public:
+    int n_vertices, n_triangles;
+    int *faces;
+    Vec3 *p;
+    TriangleMesh(int n_vertices, int n_triangles);
+    ~TriangleMesh();
+};
+
+class MeshTriangle : public Shape {
+private:
+    TriangleMesh *mesh;
+    int *start;
+public:
+    MeshTriangle(TriangleMesh *mesh, int id);
+    virtual bool intersect(const Ray &r) const;
+    virtual void intersect_point(const Ray &r, Intersection &isect) const;
+    virtual BBox get_bbox() const;
+};
+
 #endif //RENDER_SHAPE_H

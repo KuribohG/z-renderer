@@ -1,4 +1,5 @@
 #include <iostream>
+#include <tuple>
 
 #include "shape.h"
 #include "camera.h"
@@ -27,10 +28,11 @@ void write_image_in_ppm(const char *filename, int width, int height, const unsig
     fclose(fp);
 }
 
-void load_obj(const char *filename, std::vector<Triangle> &mesh) {
+void load_obj(const char *filename, std::vector<MeshTriangle*> &triangles) {
     FILE *fp = fopen(filename, "r");
     char type[10];
     std::vector<Vec3> vertices;
+    std::vector<std::tuple<int, int, int> > faces;
     while(true) {
         int res = fscanf(fp, "%s", type);
         if (res == EOF) {
@@ -44,10 +46,22 @@ void load_obj(const char *filename, std::vector<Triangle> &mesh) {
             int x, y, z;
             fscanf(fp, "%d%d%d", &x, &y, &z);
             x--, y--, z--;
-            mesh.emplace_back(vertices[x], vertices[y], vertices[z]);
+            faces.push_back(std::make_tuple(x, y, z));
         }
     }
     fclose(fp);
+    int n = (int)vertices.size(), m = (int)faces.size();
+    TriangleMesh *mesh = new TriangleMesh(n, m);
+    for (int i = 0; i < n; i++) {
+        mesh->p[i] = vertices[i];
+        mesh->faces[i * 3] = std::get<0>(faces[i]);
+        mesh->faces[i * 3 + 1] = std::get<1>(faces[i]);
+        mesh->faces[i * 3 + 2] = std::get<2>(faces[i]);
+    }
+    for (int i = 0; i < m; i++) {
+        MeshTriangle *x = new MeshTriangle(mesh, i);
+        triangles.push_back(x);
+    }
 }
 
 int main() {
@@ -123,27 +137,39 @@ int main() {
     }
     //Sphere *x = new Sphere(Vec3(50.0, 30.0, 50.0), 20.0);
     Material mirror;
-    mirror.set_ambient(0.0);
+    mirror.set_ambient(0.3);
     mirror.set_specular(0.0);
     mirror.set_diffuse(0.0);
     mirror.set_shininess(32.0);
     mirror.set_reflectivity(0.5);
-    mirror.set_color(Vec3(0.0, 0.0, 0.0));
+    mirror.set_color(Vec3(1.0, 0.0, 0.0));
+    Material mirror1;
+    mirror1.set_ambient(0.0);
+    mirror1.set_specular(0.0);
+    mirror1.set_diffuse(0.0);
+    mirror1.set_shininess(32.0);
+    mirror1.set_reflectivity(0.5);
+    mirror1.set_color(Vec3(0.0, 0.0, 0.0));
     Triangle *x = new Triangle(Vec3(0, 0, 100), Vec3(100, 100, 100), Vec3(0, 100, 100));
     Triangle *y = new Triangle(Vec3(0, 0, 100), Vec3(100, 100, 100), Vec3(100, 0, 100));
     Sphere *z = new Sphere(Vec3(30.0, 30.0, 50.0), 10.0);
+    Sphere *w = new Sphere(Vec3(70.0, 30.0, 50.0), 10.0);
     Object *obj = new Object();
     obj->bind_shape(x);
-    obj->bind_material(&mirror);
+    obj->bind_material(&mirror1);
     scene.add_obj(obj);
     Object *obj2 = new Object();
     obj2->bind_shape(y);
-    obj2->bind_material(&mirror);
+    obj2->bind_material(&mirror1);
     scene.add_obj(obj2);
     Object *obj3 = new Object();
     obj3->bind_shape(z);
     obj3->bind_material(&mirror);
     scene.add_obj(obj3);
+    Object *obj4 = new Object();
+    obj4->bind_shape(w);
+    obj4->bind_material(&mirror);
+    scene.add_obj(obj4);
     PointLight light(Vec3(50.0, 50.0, 50.0), 1.0);
     scene.add_light(&light);
 
@@ -156,7 +182,7 @@ int main() {
     for (int j = HEIGHT - 1; j >= 0; j--) {
         for (int i = 0; i < WIDTH; i++) {
             Ray r = camera.get_ray_through_pixel(i, j, WIDTH, HEIGHT);
-            Vec3 color = scene.li(r, 5, tree);
+            Vec3 color = scene.li(r, 5, tree, true);
             int id = (HEIGHT - 1 - j) * WIDTH * 3 + i * 3;
             data[id++] = (unsigned char)(std::min(color[0], (Float)1.0) * 256);
             data[id++] = (unsigned char)(std::min(color[1], (Float)1.0) * 256);

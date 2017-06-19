@@ -126,3 +126,70 @@ BBox Triangle::get_bbox() const {
     }
     return BBox(min_v, max_v);
 }
+
+TriangleMesh::TriangleMesh(int n_vertices, int n_triangles)
+        : n_vertices(n_vertices), n_triangles(n_triangles) {
+    p = new Vec3[n_vertices];
+    faces = new int[n_triangles * 3];
+}
+
+TriangleMesh::~TriangleMesh() {
+    delete [] p;
+    delete [] faces;
+}
+
+MeshTriangle::MeshTriangle(TriangleMesh *mesh, int id)
+        : mesh(mesh) {
+    start = &(mesh->faces[id * 3]);
+}
+
+bool MeshTriangle::intersect(const Ray &r) const {
+    Vec3 p = r.get_origin(), d = r.get_direction();
+    Vec3 v0 = mesh->p[start[0]], v1 = mesh->p[start[1]], v2 = mesh->p[start[2]];
+    Vec3 e1 = v1 - v0, e2 = v2 - v0;
+    Vec3 h = cross(d, e2);
+    Float a = dot(e1, h);
+    if (fabs(a) < eps) return false;
+    Float f = 1 / a;
+    Vec3 s = p - v0;
+    Float u = f * dot(s, h);
+    if (u < -eps || u > 1.0 + eps) return false;
+    Vec3 q = cross(s, e1);
+    Float v = f * dot(d, q);
+    if (v < -eps || u + v > 1.0 + eps) return false;
+    Float t = f * dot(e2, q);
+    if (t > -eps) return true;
+    return false;
+}
+
+void MeshTriangle::intersect_point(const Ray &r, Intersection &isect) const {
+    Vec3 p = r.get_origin(), d = r.get_direction();
+    Vec3 v0 = mesh->p[start[0]], v1 = mesh->p[start[1]], v2 = mesh->p[start[2]];
+    Vec3 e1 = v1 - v0, e2 = v2 - v0;
+    Vec3 h = cross(d, e2);
+    Float a = dot(e1, h);
+    Float f = 1 / a;
+    Vec3 s = p - v0;
+    Vec3 q = cross(s, e1);
+    Float t = f * dot(e2, q);
+    isect.point = p + t * d;
+    Vec3 normal = cross(e1, e2);
+    Float volume = dot(normal, p - v0);
+    if (volume > 0) isect.set_normal(normal);
+    else isect.set_normal(-normal);
+}
+
+BBox MeshTriangle::get_bbox() const {
+    Vec3 min_v, max_v;
+    Vec3 p[3]= {mesh->p[start[0]], mesh->p[start[1]], mesh->p[start[2]]};
+    for (int i = 0; i < 3; i++) {
+        Float min_x = std::numeric_limits<Float>::max();
+        Float max_x = std::numeric_limits<Float>::lowest();
+        for (int j = 0; j < 3; j++) {
+            max_x = std::max(max_x, p[j][i]);
+            min_x = std::min(min_x, p[j][i]);
+        }
+        min_v.set(i, min_x), max_v.set(i, max_x);
+    }
+    return BBox(min_v, max_v);
+}

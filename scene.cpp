@@ -13,7 +13,7 @@ void Scene::add_light(Light *light) {
     lights.push_back(light);
 }
 
-Vec3 Scene::li(const Ray &r, int depth, KdTree *tree) {
+Vec3 Scene::li(const Ray &r, int depth, KdTree *tree, bool ambient) {
     Vec3 color(0.0, 0.0, 0.0);
     if (depth == 0) {
         return color;

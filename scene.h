@@ -14,7 +14,7 @@ public:
     Scene();
     void add_obj(Object *obj);
     void add_light(Light *light);
-    Vec3 li(const Ray &r, int depth, KdTree *tree = nullptr);
+    Vec3 li(const Ray &r, int depth, KdTree *tree = nullptr, bool ambient = false);
 };
 
 #endif //RENDER_SCENE_H
