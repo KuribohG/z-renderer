@@ -1,5 +1,6 @@
 #include <iostream>
 #include <tuple>
+#include <cassert>
 
 #include "shape.h"
 #include "camera.h"
@@ -44,6 +45,15 @@ std::tuple<int, int, int> convert(char *str) {
     return std::tuple<int, int, int>{ans[0] - 1, ans[1] - 1, ans[2] - 1};
 }
 
+int get_elem_i(std::tuple<int, int, int> t, int i) {
+    switch (i) {
+        case 0: return std::get<0>(t);
+        case 1: return std::get<1>(t);
+        case 2: return std::get<2>(t);
+    }
+    return -2;
+}
+
 void load_obj(const char *filename, std::vector<MeshTriangle*> &triangles) {
     FILE *fp = fopen(filename, "r");
     char type[10];
@@ -83,9 +93,9 @@ void load_obj(const char *filename, std::vector<MeshTriangle*> &triangles) {
     for (int i = 0; i < n; i++) {
         mesh->p[i] = v[i];
         for (int k = 0; k < 3; k++) {
-            mesh->faces_v[i * 3 + k] = std::get<k>(f_v[i]);
-            mesh->faces_vt[i * 3 + k] = std::get<k>(f_vt[i]);
-            mesh->faces_vn[i * 3 + k] = std::get<k>(f_vn[i]);
+            mesh->faces_v[i * 3 + k] = get_elem_i(f_v[i], k);
+            mesh->faces_vt[i * 3 + k] = get_elem_i(f_vt[i], k);
+            mesh->faces_vn[i * 3 + k] = get_elem_i(f_vn[i], k);
         }
     }
     for (int i = 0; i < m; i++) {
