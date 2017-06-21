@@ -2,6 +2,7 @@
 #define RENDER_BASE_H
 
 #include <cstdio>
+#include <vector>
 
 typedef float Float;
 
@@ -40,6 +41,25 @@ Vec3 operator/(const Vec3 &p, Float q);
 Float dot(const Vec3 &p, const Vec3 &q);
 Vec3 cross(const Vec3 &p, const Vec3 &q);
 Float distance_sqr(const Vec3 &p, const Vec3 &q);
+
+template <typename T>
+class Array2D {
+private:
+    std::vector<T> data;
+public:
+    int shape[2];
+    Array2D(int h, int w) {
+        shape[0] = h;
+        shape[1] = w;
+        data.resize(h * w);
+    }
+    T get(int i, int j) const {
+        return data[i * shape[1] + j];
+    }
+    void set(int i, int j, T x) {
+        data[i * shape[1] + j] = x;
+    }
+};
 
 class Ray {
 private:

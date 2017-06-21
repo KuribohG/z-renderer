@@ -130,22 +130,35 @@ BBox Triangle::get_bbox() const {
 TriangleMesh::TriangleMesh(int n_vertices, int n_triangles)
         : n_vertices(n_vertices), n_triangles(n_triangles) {
     p = new Vec3[n_vertices];
-    faces = new int[n_triangles * 3];
+    faces_v = new int[n_triangles * 3];
+    faces_vt = new int[n_triangles * 3];
+    faces_vn = new int[n_triangles * 3];
 }
 
 TriangleMesh::~TriangleMesh() {
     delete [] p;
-    delete [] faces;
+    delete [] faces_v;
+    delete [] faces_vt;
+    delete [] faces_vn;
 }
 
 MeshTriangle::MeshTriangle(TriangleMesh *mesh, int id)
         : mesh(mesh) {
-    start = &(mesh->faces[id * 3]);
+    start_v = &(mesh->faces_v[id * 3]);
+    start_vt = &(mesh->faces_vt[id * 3]);
+    start_vn = &(mesh->faces_vn[id * 3]);
+    //TODO: check validity
+    if ((*start_vt) >= 0) state |= (1 << HAS_TEXTURE);
+    if ((*start_vn) >= 0) state |= (1 << HAS_NORMAL);
+}
+
+bool MeshTriangle::check_attribute(MeshTriangleAttribute attr) const {
+    return bool(state & (1 << attr));
 }
 
 bool MeshTriangle::intersect(const Ray &r) const {
     Vec3 p = r.get_origin(), d = r.get_direction();
-    Vec3 v0 = mesh->p[start[0]], v1 = mesh->p[start[1]], v2 = mesh->p[start[2]];
+    Vec3 v0 = mesh->p[start_v[0]], v1 = mesh->p[start_v[1]], v2 = mesh->p[start_v[2]];
     Vec3 e1 = v1 - v0, e2 = v2 - v0;
     Vec3 h = cross(d, e2);
     Float a = dot(e1, h);
@@ -164,7 +177,7 @@ bool MeshTriangle::intersect(const Ray &r) const {
 
 void MeshTriangle::intersect_point(const Ray &r, Intersection &isect) const {
     Vec3 p = r.get_origin(), d = r.get_direction();
-    Vec3 v0 = mesh->p[start[0]], v1 = mesh->p[start[1]], v2 = mesh->p[start[2]];
+    Vec3 v0 = mesh->p[start_v[0]], v1 = mesh->p[start_v[1]], v2 = mesh->p[start_v[2]];
     Vec3 e1 = v1 - v0, e2 = v2 - v0;
     Vec3 h = cross(d, e2);
     Float a = dot(e1, h);
@@ -181,7 +194,7 @@ void MeshTriangle::intersect_point(const Ray &r, Intersection &isect) const {
 
 BBox MeshTriangle::get_bbox() const {
     Vec3 min_v, max_v;
-    Vec3 p[3]= {mesh->p[start[0]], mesh->p[start[1]], mesh->p[start[2]]};
+    Vec3 p[3]= {mesh->p[start_v[0]], mesh->p[start_v[1]], mesh->p[start_v[2]]};
     for (int i = 0; i < 3; i++) {
         Float min_x = std::numeric_limits<Float>::max();
         Float max_x = std::numeric_limits<Float>::lowest();

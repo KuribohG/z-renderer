@@ -26,11 +26,29 @@ void write_image_in_ppm(const char *filename, int width, int height, const unsig
     fclose(fp);
 }
 
+std::tuple<int, int, int> convert(char *str) {
+    int len = strlen(str);
+    int c = 0, start[3] = {0};
+    for (int i = 0; i < len; i++) {
+        if (str[i] == '/') c++, str[i] = 0;
+        start[c] = i + 1;
+    }
+    for (int i = c; i < 2; i++) {
+        start[i] = len;
+    }
+    int ans[3] = {0, 0, 0};
+    for (int i = 0; i < 3; i++) {
+        if (str[start[i]] == 0) continue;
+        else ans[i] = atoi(str + start[i]);
+    }
+    return std::tuple<int, int, int>{ans[0] - 1, ans[1] - 1, ans[2] - 1};
+}
+
 void load_obj(const char *filename, std::vector<MeshTriangle*> &triangles) {
     FILE *fp = fopen(filename, "r");
     char type[10];
-    std::vector<Vec3> vertices;
-    std::vector<std::tuple<int, int, int> > faces;
+    std::vector<Vec3> v, vt, vn;
+    std::vector<std::tuple<int, int, int> > f_v, f_vt, f_vn;
     while(true) {
         int res = fscanf(fp, "%s", type);
         if (res == EOF) {
@@ -39,22 +57,36 @@ void load_obj(const char *filename, std::vector<MeshTriangle*> &triangles) {
         if (strcmp(type, "v") == 0) {
             Float x, y, z;
             fscanf(fp, "%f%f%f", &x, &y, &z);
-            vertices.emplace_back(x, y, z);
-        } else if(strcmp(type, "f") == 0) {
-            int x, y, z;
-            fscanf(fp, "%d%d%d", &x, &y, &z);
-            x--, y--, z--;
-            faces.push_back(std::make_tuple(x, y, z));
+            v.emplace_back(x, y, z);
+        } else if (strcmp(type, "vt") == 0) {
+            Float x, y, z;
+            fscanf(fp, "%f%f%f", &x, &y, &z);
+            vt.emplace_back(x, y, z);
+        } else if (strcmp(type, "vn") == 0) {
+            Float x, y, z;
+            fscanf(fp, "%f%f%f", &x, &y, &z);
+            vn.emplace_back(x, y, z);
+        } else if (strcmp(type, "f") == 0) {
+            char x[20], y[20], z[20];
+            fscanf(fp, "%s%s%s", x, y, z);
+            std::tuple<int, int, int> xx = convert(x);
+            std::tuple<int, int, int> yy = convert(y);
+            std::tuple<int, int, int> zz = convert(z);
+            f_v.push_back(std::make_tuple(std::get<0>(xx), std::get<0>(yy), std::get<0>(zz)));
+            f_vt.push_back(std::make_tuple(std::get<1>(xx), std::get<1>(yy), std::get<1>(zz)));
+            f_vn.push_back(std::make_tuple(std::get<2>(xx), std::get<2>(yy), std::get<2>(zz)));
         }
     }
     fclose(fp);
-    int n = (int)vertices.size(), m = (int)faces.size();
+    int n = (int)v.size(), m = (int)f_v.size();
     TriangleMesh *mesh = new TriangleMesh(n, m);
     for (int i = 0; i < n; i++) {
-        mesh->p[i] = vertices[i];
-        mesh->faces[i * 3] = std::get<0>(faces[i]);
-        mesh->faces[i * 3 + 1] = std::get<1>(faces[i]);
-        mesh->faces[i * 3 + 2] = std::get<2>(faces[i]);
+        mesh->p[i] = v[i];
+        for (int k = 0; k < 3; k++) {
+            mesh->faces_v[i * 3 + k] = std::get<k>(f_v[i]);
+            mesh->faces_vt[i * 3 + k] = std::get<k>(f_vt[i]);
+            mesh->faces_vn[i * 3 + k] = std::get<k>(f_vn[i]);
+        }
     }
     for (int i = 0; i < m; i++) {
         MeshTriangle *x = new MeshTriangle(mesh, i);

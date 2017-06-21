@@ -35,18 +35,22 @@ public:
 class TriangleMesh {
 public:
     int n_vertices, n_triangles;
-    int *faces;
+    int *faces_v, *faces_vt, *faces_vn;
     Vec3 *p;
     TriangleMesh(int n_vertices, int n_triangles);
     ~TriangleMesh();
 };
 
+enum MeshTriangleAttribute {HAS_TEXTURE, HAS_NORMAL};
+
 class MeshTriangle : public Shape {
 private:
     TriangleMesh *mesh;
-    int *start;
+    int state;
+    int *start_v, *start_vt, *start_vn;
 public:
     MeshTriangle(TriangleMesh *mesh, int id);
+    bool check_attribute(MeshTriangleAttribute attr) const;
     virtual bool intersect(const Ray &r) const;
     virtual void intersect_point(const Ray &r, Intersection &isect) const;
     virtual BBox get_bbox() const;
