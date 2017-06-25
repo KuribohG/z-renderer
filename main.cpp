@@ -256,9 +256,49 @@ void test_mesh() {
     write_image_in_ppm("image.ppm", WIDTH, HEIGHT, data);
 }
 
+void test_mesh_normal() {
+    const int HEIGHT = 500;
+    const int WIDTH = 500;
+
+    Scene scene;
+    std::vector<MeshTriangle*> v;
+    load_obj("example1.obj", v);
+
+    PhongMaterial mat;
+    mat.ambient = 0.1;
+    mat.specular = 0.0;
+    mat.diffuse = 0.7;
+    mat.shininess = 32.0;
+    mat.reflectivity = -1.0;
+    mat.set_color(Vec3(1.0, 1.0, 1.0));
+    for (MeshTriangle *tri : v) {
+        Object *obj = new Object();
+        obj->bind_shape(tri);
+        obj->bind_material(&mat);
+        scene.add_obj(obj);
+    }
+
+    Camera camera(Vec3(0.0, 0.0, 3.0), Vec3(0.0, 0.0, 0.0), Vec3(0.0, 1.0, 0.0), 4.0, 4.0);
+    camera.initialize();
+
+    PointLight light(Vec3(0.1, 0.1, 2.0), 1.0);
+    scene.add_light(&light);
+
+    KdTree *tree = new KdTree();
+    tree->build(scene.objs);
+
+    unsigned char *data = new unsigned char[WIDTH * HEIGHT * 3];
+
+    WhittedIntegrator integrator;
+    integrator.render(data, HEIGHT, WIDTH, &camera, &scene, 5, tree);
+
+    write_image_in_ppm("image.ppm", WIDTH, HEIGHT, data);
+}
+
 int main() {
-    test1();
+    //test1();
     //test_mesh();
+    test_mesh_normal();
 
     return 0;
 }
