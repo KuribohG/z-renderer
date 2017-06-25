@@ -14,6 +14,7 @@ public:
     Material *get_material();
     void bind_shape(Shape *source);
     void bind_material(Material *source);
+    void intersect_point(const Ray &r, Intersection &isect) const;
 };
 
 #endif //RENDER_OBJECT_H

@@ -36,15 +36,15 @@ class TriangleMesh {
 public:
     int n_vertices, n_triangles;
     int *faces_v, *faces_vt, *faces_vn;
-    Vec3 *p;
-    TriangleMesh(int n_vertices, int n_triangles);
+    Vec3 *v, *vt, *vn;
+    TriangleMesh(int n_vertices, int n_vertice_textures, int n_vertice_normals, int n_triangles);
     ~TriangleMesh();
 };
 
 enum MeshTriangleAttribute {HAS_TEXTURE, HAS_NORMAL};
 
 class MeshTriangle : public Shape {
-private:
+public:
     TriangleMesh *mesh;
     int state;
     int *start_v, *start_vt, *start_vn;

@@ -78,7 +78,7 @@ Object *KdTreeNode::hit(const Ray &r, Intersection &isect) const {
                     Float d = distance_sqr(origin, isect0.point);
                     if (d < dis) {
                         dis = d;
-                        isect_res = isect0;
+                        objs[i]->intersect_point(r, isect_res);
                         intersect = objs[i];
                     }
                 }

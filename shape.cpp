@@ -127,16 +127,20 @@ BBox Triangle::get_bbox() const {
     return BBox(min_v, max_v);
 }
 
-TriangleMesh::TriangleMesh(int n_vertices, int n_triangles)
+TriangleMesh::TriangleMesh(int n_vertices, int n_vertice_textures, int n_vertice_normals, int n_triangles)
         : n_vertices(n_vertices), n_triangles(n_triangles) {
-    p = new Vec3[n_vertices];
+    v = new Vec3[n_vertices];
+    vt = new Vec3[n_vertice_textures];
+    vn = new Vec3[n_vertice_normals];
     faces_v = new int[n_triangles * 3];
     faces_vt = new int[n_triangles * 3];
     faces_vn = new int[n_triangles * 3];
 }
 
 TriangleMesh::~TriangleMesh() {
-    delete [] p;
+    delete [] v;
+    delete [] vt;
+    delete [] vn;
     delete [] faces_v;
     delete [] faces_vt;
     delete [] faces_vn;
@@ -158,7 +162,7 @@ bool MeshTriangle::check_attribute(MeshTriangleAttribute attr) const {
 
 bool MeshTriangle::intersect(const Ray &r) const {
     Vec3 p = r.get_origin(), d = r.get_direction();
-    Vec3 v0 = mesh->p[start_v[0]], v1 = mesh->p[start_v[1]], v2 = mesh->p[start_v[2]];
+    Vec3 v0 = mesh->v[start_v[0]], v1 = mesh->v[start_v[1]], v2 = mesh->v[start_v[2]];
     Vec3 e1 = v1 - v0, e2 = v2 - v0;
     Vec3 h = cross(d, e2);
     Float a = dot(e1, h);
@@ -177,7 +181,7 @@ bool MeshTriangle::intersect(const Ray &r) const {
 
 void MeshTriangle::intersect_point(const Ray &r, Intersection &isect) const {
     Vec3 p = r.get_origin(), d = r.get_direction();
-    Vec3 v0 = mesh->p[start_v[0]], v1 = mesh->p[start_v[1]], v2 = mesh->p[start_v[2]];
+    Vec3 v0 = mesh->v[start_v[0]], v1 = mesh->v[start_v[1]], v2 = mesh->v[start_v[2]];
     Vec3 e1 = v1 - v0, e2 = v2 - v0;
     Vec3 h = cross(d, e2);
     Float a = dot(e1, h);
@@ -186,15 +190,29 @@ void MeshTriangle::intersect_point(const Ray &r, Intersection &isect) const {
     Vec3 q = cross(s, e1);
     Float t = f * dot(e2, q);
     isect.point = p + t * d;
-    Vec3 normal = cross(e1, e2);
-    Float volume = dot(normal, p - v0);
-    if (volume > 0) isect.set_normal(normal);
-    else isect.set_normal(-normal);
+    Vec3 N = cross(e1, e2);
+    Float denom = dot(N, N);
+    Float x = dot(N, cross(v2 - v1, isect.point - v1)) / denom;
+    Float y = dot(N, cross(v0 - v2, isect.point - v2)) / denom;
+    isect.barycentric = Vec3(x, y, 1.0 - x - y);
+    Float u = isect.barycentric[0], v = isect.barycentric[1];
+    if (check_attribute(HAS_NORMAL)) {
+        Vec3 normal = u * mesh->vn[start_vn[0]] + v * mesh->vn[start_vn[1]] + (1.0 - u - v) * mesh->vn[start_vn[2]];
+        isect.set_normal(normal);
+    } else {
+        Vec3 normal = cross(e1, e2);
+        Float volume = dot(normal, p - v0);
+        if (volume > 0) isect.set_normal(normal);
+        else isect.set_normal(-normal);
+    }
+    if (check_attribute(HAS_TEXTURE)) {
+        isect.texture_coord = u * mesh->vt[start_vt[0]] + v * mesh->vt[start_vt[1]] + (1.0 - u - v) * mesh->vt[start_vt[2]];
+    }
 }
 
 BBox MeshTriangle::get_bbox() const {
     Vec3 min_v, max_v;
-    Vec3 p[3]= {mesh->p[start_v[0]], mesh->p[start_v[1]], mesh->p[start_v[2]]};
+    Vec3 p[3] = {mesh->v[start_v[0]], mesh->v[start_v[1]], mesh->v[start_v[2]]};
     for (int i = 0; i < 3; i++) {
         Float min_x = std::numeric_limits<Float>::max();
         Float max_x = std::numeric_limits<Float>::lowest();

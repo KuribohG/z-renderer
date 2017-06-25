@@ -1,51 +1,17 @@
 #include "material.h"
 
-Material::Material() {}
+PhongMaterial::PhongMaterial() {}
 
-void Material::set_color(const Vec3 &source) {
-    color = source;
+PhongMaterial::~PhongMaterial() {
+    if (texture) {
+        delete texture;
+    }
 }
 
-void Material::set_ambient(Float source) {
-    ambient = source;
+void PhongMaterial::set_color(const Vec3 &color) {
+    texture = new ConstantTexture2D<Vec3>(color);
 }
 
-void Material::set_diffuse(Float source) {
-    diffuse = source;
-}
-
-void Material::set_specular(Float source) {
-    specular = source;
-}
-
-void Material::set_shininess(Float source) {
-    shininess = source;
-}
-
-void Material::set_reflectivity(Float source) {
-    reflectivity = source;
-}
-
-Vec3 Material::get_color() const {
-    return color;
-}
-
-Float Material::get_ambient() const {
-    return ambient;
-}
-
-Float Material::get_diffuse() const {
-    return diffuse;
-}
-
-Float Material::get_specular() const {
-    return specular;
-}
-
-Float Material::get_shininess() const {
-    return shininess;
-}
-
-Float Material::get_reflectivity() const {
-    return reflectivity;
+void PhongMaterial::complete_intersection(Intersection &isect) const {
+    isect.color = texture->at(isect.texture_coord[0], isect.texture_coord[1]);
 }

@@ -31,10 +31,12 @@ std::tuple<int, int, int> convert(char *str) {
     int len = strlen(str);
     int c = 0, start[3] = {0};
     for (int i = 0; i < len; i++) {
-        if (str[i] == '/') c++, str[i] = 0;
-        start[c] = i + 1;
+        if (str[i] == '/') {
+            c++, str[i] = 0;
+            start[c] = i + 1;
+        }
     }
-    for (int i = c; i < 2; i++) {
+    for (int i = c + 1; i < 3; i++) {
         start[i] = len;
     }
     int ans[3] = {0, 0, 0};
@@ -88,16 +90,18 @@ void load_obj(const char *filename, std::vector<MeshTriangle*> &triangles) {
         }
     }
     fclose(fp);
-    int n = (int)v.size(), m = (int)f_v.size();
-    TriangleMesh *mesh = new TriangleMesh(n, m);
-    for (int i = 0; i < n; i++) {
-        mesh->p[i] = v[i];
+    int n = (int)v.size(), m = (int)f_v.size(), nn = (int)vn.size(), nt = (int)vt.size();
+    TriangleMesh *mesh = new TriangleMesh(n, nt, nn, m);
+    for (int i = 0; i < m; i++) {
         for (int k = 0; k < 3; k++) {
             mesh->faces_v[i * 3 + k] = get_elem_i(f_v[i], k);
             mesh->faces_vt[i * 3 + k] = get_elem_i(f_vt[i], k);
             mesh->faces_vn[i * 3 + k] = get_elem_i(f_vn[i], k);
         }
     }
+    for (int i = 0; i < n; i++) mesh->v[i] = v[i];
+    for (int i = 0; i < nt; i++) mesh->vt[i] = vt[i];
+    for (int i = 0; i < nn; i++) mesh->vn[i] = vn[i];
     for (int i = 0; i < m; i++) {
         MeshTriangle *x = new MeshTriangle(mesh, i);
         triangles.push_back(x);
@@ -109,18 +113,18 @@ void test1() {
     const int HEIGHT = 2000;
     Camera camera(Vec3(50.0, 30.0, -50.0), Vec3(50.0, 30.0, 50.0), Vec3(0.0, 1.0, 0.0), 100.0, 100.0);
     camera.initialize();
-    Material mat1, mat2;
-    mat1.set_ambient(0.3);
-    mat1.set_specular(0.5);
-    mat1.set_diffuse(0.6);
-    mat1.set_shininess(32.0);
-    mat1.set_reflectivity(-1.0);
+    PhongMaterial mat1, mat2;
+    mat1.ambient = 0.3;
+    mat1.specular = 0.5;
+    mat1.diffuse = 0.6;
+    mat1.shininess = 32.0;
+    mat1.reflectivity = -1.0;
     mat1.set_color(Vec3(1.0, 1.0, 1.0));
-    mat2.set_ambient(0.3);
-    mat2.set_specular(0.5);
-    mat2.set_diffuse(0.6);
-    mat2.set_shininess(32.0);
-    mat2.set_reflectivity(-1.0);
+    mat2.ambient = 0.3;
+    mat2.specular = 0.5;
+    mat2.diffuse = 0.6;
+    mat2.shininess = 32.0;
+    mat2.reflectivity = -1.0;
     mat2.set_color(Vec3(135.0 / 255, 206.0 / 255, 250.0 / 255));
     Scene scene;
 
@@ -165,19 +169,19 @@ void test1() {
         }
     }
 
-    Material mirror;
-    mirror.set_ambient(0.3);
-    mirror.set_specular(0.0);
-    mirror.set_diffuse(0.0);
-    mirror.set_shininess(32.0);
-    mirror.set_reflectivity(0.5);
+    PhongMaterial mirror;
+    mirror.ambient = 0.3;
+    mirror.specular = 0.0;
+    mirror.diffuse = 0.0;
+    mirror.shininess = 32.0;
+    mirror.reflectivity = 0.5;
     mirror.set_color(Vec3(1.0, 0.0, 0.0));
-    Material mirror1;
-    mirror1.set_ambient(0.0);
-    mirror1.set_specular(0.0);
-    mirror1.set_diffuse(0.0);
-    mirror1.set_shininess(32.0);
-    mirror1.set_reflectivity(0.5);
+    PhongMaterial mirror1;
+    mirror1.ambient = 0.0;
+    mirror1.specular = 0.0;
+    mirror1.diffuse = 0.0;
+    mirror1.shininess = 32.0;
+    mirror1.reflectivity = 0.5;
     mirror1.set_color(Vec3(0.0, 0.0, 0.0));
     Triangle *x = new Triangle(Vec3(0, 0, 100), Vec3(100, 100, 100), Vec3(0, 100, 100));
     Triangle *y = new Triangle(Vec3(0, 0, 100), Vec3(100, 100, 100), Vec3(100, 0, 100));
@@ -221,12 +225,12 @@ void test_mesh() {
     std::vector<MeshTriangle*> v;
     load_obj("example.obj", v);
 
-    Material mat;
-    mat.set_ambient(0.1);
-    mat.set_specular(0.0);
-    mat.set_diffuse(0.7);
-    mat.set_shininess(16.0);
-    mat.set_reflectivity(-1.0);
+    PhongMaterial mat;
+    mat.ambient = 0.1;
+    mat.specular = 0.0;
+    mat.diffuse = 0.7;
+    mat.shininess = 16.0;
+    mat.reflectivity = -1.0;
     mat.set_color(Vec3(1.0, 1.0, 1.0));
     for (MeshTriangle *tri : v) {
         Object *obj = new Object();
@@ -253,7 +257,8 @@ void test_mesh() {
 }
 
 int main() {
-    test_mesh();
+    test1();
+    //test_mesh();
 
     return 0;
 }

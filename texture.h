@@ -7,6 +7,7 @@ template <typename T>
 class Texture2D {
 public:
     virtual Vec3 at(Float x, Float y) const = 0;
+    virtual ~Texture2D() {}
 };
 
 template <typename T>
