@@ -71,6 +71,10 @@ BBox Sphere::get_bbox() const {
     return BBox(min_v, max_v);
 }
 
+Vec3 Sphere::surface_normal(const Vec3 &p) const {
+    return (p - position).normalize();
+}
+
 Triangle::Triangle(const Vec3 &p0, const Vec3 &p1, const Vec3 &p2) {
     p[0] = p0;
     p[1] = p1;
@@ -125,6 +129,10 @@ BBox Triangle::get_bbox() const {
         min_v.set(i, min_x), max_v.set(i, max_x);
     }
     return BBox(min_v, max_v);
+}
+
+Vec3 Triangle::surface_normal(const Vec3 &x) const {
+    return cross(p[1] - p[0], p[2] - p[0]).normalize();
 }
 
 TriangleMesh::TriangleMesh(int n_vertices, int n_vertice_textures, int n_vertice_normals, int n_triangles)
@@ -223,4 +231,19 @@ BBox MeshTriangle::get_bbox() const {
         min_v.set(i, min_x), max_v.set(i, max_x);
     }
     return BBox(min_v, max_v);
+}
+
+Vec3 MeshTriangle::surface_normal(const Vec3 &p) const {
+    Vec3 v0 = mesh->v[start_v[0]], v1 = mesh->v[start_v[1]], v2 = mesh->v[start_v[2]];
+    if (check_attribute(HAS_NORMAL)) {
+        Vec3 e1 = v1 - v0, e2 = v2 - v0;
+        Vec3 N = cross(e1, e2);
+        Float denom = dot(N, N);
+        Float x = dot(N, cross(v2 - v1, p - v1)) / denom;
+        Float y = dot(N, cross(v0 - v2, p - v2)) / denom;
+        Vec3 normal = x * mesh->vn[start_vn[0]] + y * mesh->vn[start_vn[1]] + (1.0 - x - y) * mesh->vn[start_vn[2]];
+        return normal;
+    } else {
+        return cross(v1 - v0, v2 - v0).normalize();
+    }
 }

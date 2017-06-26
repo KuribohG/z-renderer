@@ -21,6 +21,8 @@ public:
     Float specular;
     Float shininess;
     Float reflectivity;
+    Float refraction;
+    Float etaA, etaB;
     PhongMaterial();
     virtual ~PhongMaterial();
     void set_color(const Vec3 &color);

@@ -10,6 +10,7 @@ public:
     virtual bool intersect(const Ray &r) const = 0;
     virtual void intersect_point(const Ray &r, Intersection &isect) const = 0;
     virtual BBox get_bbox() const = 0;
+    virtual Vec3 surface_normal(const Vec3 &p) const = 0;
 };
 
 class Sphere : public Shape {
@@ -21,6 +22,7 @@ public:
     virtual bool intersect(const Ray &r) const;
     virtual void intersect_point(const Ray &r, Intersection &isect) const;
     virtual BBox get_bbox() const;
+    virtual Vec3 surface_normal(const Vec3 &p) const;
 };
 
 class Triangle : public Shape {
@@ -30,6 +32,7 @@ public:
     virtual bool intersect(const Ray &r) const;
     virtual void intersect_point(const Ray &r, Intersection &isect) const;
     virtual BBox get_bbox() const;
+    virtual Vec3 surface_normal(const Vec3 &p) const;
 };
 
 class TriangleMesh {
@@ -54,6 +57,7 @@ public:
     virtual bool intersect(const Ray &r) const;
     virtual void intersect_point(const Ray &r, Intersection &isect) const;
     virtual BBox get_bbox() const;
+    virtual Vec3 surface_normal(const Vec3 &p) const;
 };
 
 #endif //RENDER_SHAPE_H
