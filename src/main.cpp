@@ -120,12 +120,14 @@ void test1() {
     mat1.diffuse = 0.6;
     mat1.shininess = 32.0;
     mat1.reflectivity = -1.0;
+    mat1.refraction = -1.0;
     mat1.set_color(Vec3(1.0, 1.0, 1.0));
     mat2.ambient = 0.3;
     mat2.specular = 0.5;
     mat2.diffuse = 0.6;
     mat2.shininess = 32.0;
     mat2.reflectivity = -1.0;
+    mat2.refraction = -1.0;
     mat2.set_color(Vec3(135.0 / 255, 206.0 / 255, 250.0 / 255));
     Scene scene;
 
@@ -340,11 +342,89 @@ void test_texture() {
     write_image_in_ppm("image.ppm", WIDTH, HEIGHT, data);
 }
 
+void test_refraction() {
+    const int HEIGHT = 2000;
+    const int WIDTH = 2000;
+
+    Scene scene;
+
+    PhongMaterial mat;
+    mat.ambient = 0.2;
+    mat.specular = 0.1;
+    mat.diffuse = 0.2;
+    mat.shininess = 32.0;
+    mat.reflectivity = -1.0;
+    mat.refraction = 0.7;
+    mat.etaA = 1;
+    mat.etaB = 0.9;
+    mat.set_color(Vec3(1.0, 1.0, 1.0));
+
+    Sphere ball(Vec3(40.0, 50.0, 20.0), 10.0);
+    Object *obj = new Object();
+    obj->bind_shape(&ball);
+    obj->bind_material(&mat);
+    scene.add_obj(obj);
+
+    PhongMaterial mat1, mat2;
+    mat1.ambient = 0.3;
+    mat1.specular = 0.0;
+    mat1.diffuse = 0.6;
+    mat1.shininess = 32.0;
+    mat1.reflectivity = -1.0;
+    mat1.refraction = -1.0;
+    mat1.set_color(Vec3(1.0, 1.0, 1.0));
+    mat2.ambient = 0.3;
+    mat2.specular = 0.0;
+    mat2.diffuse = 0.6;
+    mat2.shininess = 32.0;
+    mat2.reflectivity = -1.0;
+    mat2.refraction = -1.0;
+    mat2.set_color(Vec3(135.0 / 255, 206.0 / 255, 250.0 / 255));
+
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < 10; j++) {
+            int p = i * 10, q = j * 10;
+            Triangle *x = new Triangle(Vec3(p, q, 0), Vec3(p, q+10, 0), Vec3(p+10, q, 0));
+            Object *obj = new Object();
+            obj->bind_shape(x);
+            obj->bind_material(&mat1);
+            scene.add_obj(obj);
+        }
+    }
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < 10; j++) {
+            int p = i * 10, q = j * 10;
+            Triangle *x = new Triangle(Vec3(p+10, q+10, 0), Vec3(p+10, q, 0), Vec3(p, q+10, 0));
+            Object *obj = new Object();
+            obj->bind_shape(x);
+            obj->bind_material(&mat2);
+            scene.add_obj(obj);
+        }
+    }
+
+    Camera camera(Vec3(50.0, 50.0, 50.0), Vec3(50.0, 50.0, 0.0), Vec3(0.0, 1.0, 0.0), 100.0, 100.0);
+    camera.initialize();
+
+    PointLight light(Vec3(60.0, 60.0, 50.0), 1.0);
+    scene.add_light(&light);
+
+    KdTree *tree = new KdTree();
+    tree->build(scene.objs);
+
+    unsigned char *data = new unsigned char[WIDTH * HEIGHT * 3];
+
+    WhittedIntegrator integrator;
+    integrator.render(data, HEIGHT, WIDTH, &camera, &scene, 5, tree);
+
+    write_image_in_ppm("image.ppm", WIDTH, HEIGHT, data);
+}
+
 int main() {
     //test1();
     //test_mesh();
     //test_mesh_normal();
-    test_texture();
+    //test_texture();
+    test_refraction();
 
     return 0;
 }

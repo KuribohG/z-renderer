@@ -6,7 +6,7 @@
 
 typedef float Float;
 
-const Float eps = 1e-3;
+const Float eps = 3e-3;
 
 class Vec3 {
 private:
@@ -17,6 +17,7 @@ public:
     Float get_x() const;
     Float get_y() const;
     Float get_z() const;
+    Float length_sqr() const;
     Float length() const;
     Vec3 normalize() const;
     void set(int pos, Float x);

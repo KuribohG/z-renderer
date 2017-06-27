@@ -1,6 +1,10 @@
 #include "material.h"
 
-PhongMaterial::PhongMaterial() {}
+Material::Material(MaterialType type)
+        : type(type) {}
+
+PhongMaterial::PhongMaterial()
+        : Material(PHONG) {}
 
 PhongMaterial::~PhongMaterial() {}
 

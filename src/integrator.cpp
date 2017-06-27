@@ -98,6 +98,18 @@ Vec3 WhittedIntegrator::li(const Ray &r, Scene *scene, int depth, KdTree *tree) 
             reflect_direction = reflect_direction.normalize();
             color += reflectivity * li(Ray(point + 0.5 * reflect_direction, reflect_direction), scene, depth - 1, tree);
         }
+        Float refraction = phong_mat->refraction;
+        if (refraction > 0.0) {
+            Vec3 direction = r.get_direction();
+            direction = direction / abs(dot(direction, normal));
+            Float kn = phong_mat->etaA / phong_mat->etaB;
+            Vec3 surface_normal = nearest->get_shape()->surface_normal(point);
+            if (dot(direction, surface_normal) > 0) kn = 1 / kn;
+            Float kf = 1.0 / sqrt(kn * kn * direction.length_sqr() - (direction + normal).length_sqr());
+            Vec3 refraction_direction = kf * (normal + direction) - normal;
+            Ray refraction_ray(point + 0.1 * refraction_direction, refraction_direction);
+            color += refraction * li(refraction_ray, scene, depth - 1, tree);
+        }
         return color;
     }
     return color;

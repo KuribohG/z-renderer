@@ -20,8 +20,12 @@ Float Vec3::get_z() const {
     return z;
 }
 
+Float Vec3::length_sqr() const {
+    return x * x + y * y + z * z;
+}
+
 Float Vec3::length() const {
-    return (Float)sqrt(x * x + y * y + z * z);
+    return (Float)sqrt(length_sqr());
 }
 
 Vec3 Vec3::normalize() const {

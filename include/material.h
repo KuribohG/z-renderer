@@ -10,6 +10,7 @@ enum MaterialType {PHONG};
 class Material {
 public:
     MaterialType type;
+    Material(MaterialType type);
     virtual void complete_intersection(Intersection &isect) const = 0;
 };
 
